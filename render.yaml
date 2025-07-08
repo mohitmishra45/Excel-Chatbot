@@ -4,13 +4,10 @@ services:
     env: python
     plan: free
     buildCommand: |
-      pip install --upgrade pip setuptools wheel
-      pip install -r requirements.txt
-      apt-get update && apt-get install -y tesseract-ocr libgl1-mesa-glx libglib2.0-0
+      chmod +x ./render-build.sh
+      ./render-build.sh
     startCommand: gunicorn app:app
     envVars:
-      - key: PYTHON_VERSION
-        value: '3.11'
       - key: MONGO_URI
         sync: false
       - key: GEMINI_API_KEY
