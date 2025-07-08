@@ -5,11 +5,11 @@ services:
     plan: free
     buildCommand: |
       pip install -r requirements.txt
-      apt-get update && apt-get install -y tesseract-ocr
+      apt-get update && apt-get install -y tesseract-ocr libgl1-mesa-glx libglib2.0-0
     startCommand: gunicorn app:app
     envVars:
       - key: PYTHON_VERSION
-        value: 3.10.6 # Or a version compatible with your project
+        value: '3.11'
       - key: MONGO_URI
         sync: false
       - key: GEMINI_API_KEY
