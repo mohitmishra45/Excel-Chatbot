@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat History - Excel AI Chatbot</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/showdown/2.1.0/showdown.min.js"></script>
+</head>
+<body class="history-page">
+    <header class="top-nav">
+        <div class="logo">Chat History</div>
+        <nav>
+            <a href="#" id="clearHistoryBtn" class="nav-btn clear-btn"><i class="fas fa-trash-alt"></i> Clear All History</a>
+            <a href="/" class="nav-btn">Chat</a>
+            <a href="/logout" class="nav-btn">Logout</a>
+        </nav>
+    </header>
+
+    <div class="history-container {% if not history %}is-empty{% endif %}">
+        {% for entry in history %}
+        <div class="history-entry-card">
+            <div class="entry-header">
+                <span class="timestamp"><i class="fas fa-clock"></i> {{ entry.timestamp.strftime('%Y-%m-%d %H:%M:%S') }} UTC</span>
+                <a href="#" class="reprocess-btn" onclick="reprocess('{{ entry.user_message | urlencode }}')"><i class="fas fa-sync-alt"></i> Reprocess</a>
+            </div>
+            <div class="entry-body">
+                <div class="entry-line">
+                    <span class="icon"><i class="fas fa-user"></i> You:</span>
+                    <p>{{ entry.user_message }}</p>
+                </div>
+                {% if entry.image_url %}
+                <div class="entry-line">
+                    <span class="icon"><i class="fas fa-image"></i> Attachment:</span>
+                    <p><img src="{{ entry.image_url }}" alt="Uploaded Image" class="history-image"></p>
+                </div>
+                {% endif %}
+                <div class="entry-line bot-response">
+                    <span class="icon"><i class="fas fa-robot"></i> Bot:</span>
+                    <div class="markdown-content">{{ entry.ai_response | safe }}</div>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="no-history">
+            <p>Your chat history is empty.</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Custom Confirmation Modal -->
+    <div id="confirmModal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <p id="modalText">Are you sure you want to clear all chat history?</p>
+            <div class="modal-buttons">
+                <button id="confirmBtn" class="modal-button confirm">Confirm</button>
+                <button id="cancelBtn" class="modal-button cancel">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const converter = new showdown.Converter();
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.markdown-content').forEach(function(element) {
+                const rawMarkdown = element.textContent || element.innerText;
+                element.innerHTML = converter.makeHtml(rawMarkdown);
+            });
+        });
+
+        async function reprocess(query) {
+            const decodedQuery = decodeURIComponent(query);
+            // Redirect to the main chat page with the query, letting the user re-send it.
+            window.location.href = `/?reprocess_q=${encodeURIComponent(decodedQuery)}`;
+        }
+
+        document.getElementById('clearHistoryBtn').onclick = function(e) {
+            e.preventDefault();
+            document.getElementById('confirmModal').style.display = 'flex';
+        };
+
+        document.getElementById('cancelBtn').onclick = function() {
+            document.getElementById('confirmModal').style.display = 'none';
+        };
+
+        document.getElementById('confirmBtn').onclick = async function() {
+            const response = await fetch('/clear_history', { method: 'POST' });
+            const data = await response.json();
+            document.getElementById('confirmModal').style.display = 'none';
+            if (data.success) {
+                window.location.reload();
+            } else {
+                alert(`Error: ${data.error}`);
+            }
+        };
+    </script>
+</body>
+</html>
