@@ -4,6 +4,7 @@ services:
     env: python
     plan: free
     buildCommand: |
+      pip install --upgrade pip setuptools wheel
       pip install -r requirements.txt
       apt-get update && apt-get install -y tesseract-ocr libgl1-mesa-glx libglib2.0-0
     startCommand: gunicorn app:app
