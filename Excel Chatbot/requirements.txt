@@ -1,0 +1,14 @@
+Flask
+waitress
+Werkzeug
+Flask-Bcrypt
+pymongo
+python-dotenv
+google-generativeai
+Flask-Dance
+pytesseract
+Pillow
+pdfplumber
+opencv-python
+numpy
+gunicorn

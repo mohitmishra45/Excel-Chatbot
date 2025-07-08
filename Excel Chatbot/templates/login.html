@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login - Excel AI Chatbot</title>
+  <style>
+    /* Reset & base styles */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body, html {
+      height: 100%;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .container {
+      display: flex;
+      height: 100vh;
+      background-color: #f3f3f3;
+    }
+
+    /* Left Panel */
+    .left-panel {
+      flex: 1;
+      background: linear-gradient(135deg, #3b5323, #556b2f);
+      color: white;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 60px 30px;
+      text-align: center;
+    }
+
+    .left-panel img {
+      width: 100px;
+      margin-bottom: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.3);
+    }
+
+    .left-panel h1 {
+      font-size: 42px;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+
+    .left-panel h2 {
+      font-size: 26px;
+      font-weight: 400;
+      margin-bottom: 20px;
+    }
+
+    .left-panel p {
+      font-size: 16px;
+      opacity: 0.9;
+      max-width: 300px;
+    }
+
+    /* Right Panel */
+    .right-panel {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 40px;
+    }
+
+    .auth-container {
+      width: 100%;
+      max-width: 400px;
+      background: white;
+      padding: 40px 30px;
+      border-radius: 12px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+    }
+
+    .auth-container h2 {
+      text-align: center;
+      font-size: 28px;
+      margin-bottom: 25px;
+      color: #3b5323;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: #444;
+    }
+
+    input[type="email"],
+    input[type="password"] {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 15px;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 12px;
+      margin-top: 10px;
+      background-color: #3b5323;
+      color: white;
+      font-weight: bold;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    .btn:hover {
+      background-color: #2e401a;
+    }
+
+    .btn.google {
+      background-color: #DB4437;
+      margin-top: 12px;
+    }
+
+    .btn.facebook {
+      background-color: #4267B2;
+      margin-top: 10px;
+    }
+
+    .error {
+      color: red;
+      margin-bottom: 15px;
+      text-align: center;
+    }
+
+    .social-login {
+      text-align: center;
+      margin-top: 25px;
+    }
+
+    .social-login a {
+      display: block;
+      text-decoration: none;
+    }
+
+    .social-login p {
+      margin-bottom: 8px;
+      font-size: 14px;
+    }
+
+    .signup-link {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 14px;
+    }
+
+    .signup-link a {
+      color: #3b5323;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .signup-link a:hover {
+      text-decoration: underline;
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        flex-direction: column;
+      }
+
+      .left-panel, .right-panel {
+        width: 100%;
+        height: auto;
+      }
+
+      .left-panel {
+        padding: 30px 20px;
+      }
+
+      .auth-container {
+        padding: 30px 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Left Panel -->
+    <div class="left-panel">
+      <img src="https://img.icons8.com/color/96/microsoft-excel-2019--v1.png" alt="Excel AI Logo" />
+      <h1>Welcome to</h1>
+      <h2>Excel AI Chatbot</h2>
+      <p>Your smart assistant for Excel automation & productivity</p>
+    </div>
+
+    <!-- Right Panel -->
+    <div class="right-panel">
+      <div class="auth-container">
+        <h2>Login</h2>
+        <!-- {% if error %}
+        <div class="error">{{ error }}</div>
+        {% endif %} -->
+        <form method="POST">
+          <div class="form-group">
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email" required />
+          </div>
+          <div class="form-group">
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" required />
+          </div>
+          <button type="submit" class="btn">Login</button>
+        </form>
+        <!-- <div class="social-login">
+          <p>Or log in with:</p>
+          <a href="#" class="btn google">Google</a>
+          <a href="#" class="btn facebook">Facebook</a>
+        </div> -->
+        <div class="signup-link">
+          <p>Don't have an account? <a href="/signup">Sign up</a></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

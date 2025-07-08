@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Excel AI Chatbot</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/showdown/2.1.0/showdown.min.js"></script>
+</head>
+<body class="animated-bg">
+    <div class="container">
+        <header class="top-nav">
+            <div class="logo">Excel Chatbot</div>
+            <nav>
+                <a href="/history">History</a>
+                <a href="/logout">Logout</a>
+            </nav>
+        </header>
+        <div class="chat-box" id="chatBox">
+            <div class="welcome-message" id="welcomeMessage">
+                <span class="wave">👋</span>
+                <h2>Welcome to the Excel Chatbot!</h2>
+                <p>Ask your questions below and get instant Excel help.</p>
+            </div>
+            <!-- Chat messages will be appended here -->
+        </div>
+        <div class="input-area">
+            <button id="attachBtn" class="icon-btn"><i class="fas fa-paperclip"></i></button>
+            <input type="text" id="userInput" placeholder="Ask a question about Excel">
+            <button id="sendBtn" class="icon-btn"><i class="fas fa-paper-plane"></i></button>
+        </div>
+    </div>
+
+    <!-- Attachment Popup -->
+    <div id="attachmentPopup" class="popup">
+        <div class="popup-content">
+            <span class="close-btn" onclick="closePopup()">&times;</span>
+            <h2><i class="fas fa-paperclip"></i> Upload a File</h2>
+            <form id="uploadForm">
+                <div class="file-input-wrapper">
+                    <input type="file" name="file" id="fileInput" class="file-input" required>
+                    <label for="fileInput" class="file-input-label">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <span>Choose a file...</span>
+                    </label>
+                    <span id="fileName" class="file-name">No file chosen</span>
+                </div>
+                <textarea name="message" placeholder="Optional: add a message about the file..."></textarea>
+                <button type="submit" class="btn">
+                    <i class="fas fa-cogs"></i> Upload and Process
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const converter = new showdown.Converter();
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const reprocessQuery = urlParams.get('reprocess_q');
+            if (reprocessQuery) {
+                document.getElementById('userInput').value = decodeURIComponent(reprocessQuery);
+            }
+        });
+
+        function appendMessage(chatBox, className, htmlContent) {
+            const div = document.createElement('div');
+            div.className = `message ${className}`;
+            div.innerHTML = `<div class="content">${htmlContent}</div>`;
+            chatBox.appendChild(div);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        async function sendMessage() {
+            const welcomeMessage = document.getElementById('welcomeMessage');
+            if (welcomeMessage) {
+                welcomeMessage.style.display = 'none';
+            }
+
+            const input = document.getElementById('userInput');
+            const message = input.value.trim();
+            if (!message) return;
+
+            const chatBox = document.getElementById('chatBox');
+            appendMessage(chatBox, 'user', message);
+            input.value = '';
+
+            // Call backend
+            const response = await fetch('/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message })
+            });
+            const data = await response.json();
+
+            // Append AI response
+            const responseText = data.success ? data.ai_response : `Error: ${data.error}`;
+            const html = converter.makeHtml(responseText);
+            appendMessage(chatBox, 'ai', html);
+        }
+
+        document.getElementById('sendBtn').onclick = sendMessage;
+        document.getElementById('userInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendMessage();
+        });
+
+        // Popup logic
+        document.getElementById('attachBtn').onclick = function() {
+            document.getElementById('attachmentPopup').classList.add('active');
+        };
+        function closePopup() {
+            document.getElementById('attachmentPopup').classList.remove('active');
+        }
+
+        // Handle file name display
+        document.getElementById('fileInput').onchange = function() {
+            const fileName = this.files[0] ? this.files[0].name : 'No file chosen';
+            document.getElementById('fileName').textContent = fileName;
+        };
+
+        document.getElementById('uploadForm').onsubmit = async function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            const userMessage = formData.get('message') || '';
+            const file = formData.get('file');
+            closePopup();
+
+            const chatBox = document.getElementById('chatBox');
+            const welcomeMessage = document.getElementById('welcomeMessage');
+            if (welcomeMessage) {
+                welcomeMessage.style.display = 'none';
+            }
+
+            // Display a temporary user message while uploading
+            let tempUserContent = '';
+            if (file && file.name) {
+                tempUserContent += `<div><i>Uploading ${file.name}...</i></div>`;
+            }
+            if (userMessage) {
+                tempUserContent += `<div>${userMessage}</div>`;
+            }
+            appendMessage(chatBox, 'user', tempUserContent);
+
+            const response = await fetch('/upload', {
+                method: 'POST',
+                body: formData
+            });
+            const data = await response.json();
+
+            // Replace the temporary message with the final one, including the image
+            chatBox.lastChild.remove(); // Remove the temp message
+
+            let userContentHTML = '';
+            if (data.image_url) {
+                userContentHTML += `<img src="${data.image_url}" alt="Uploaded Image" class="uploaded-image">`;
+            }
+            if (userMessage) {
+                userContentHTML += `<div>${userMessage}</div>`;
+            }
+            if (!userContentHTML) {
+                userContentHTML = '<div>[File uploaded]</div>';
+            }
+            appendMessage(chatBox, 'user', userContentHTML);
+
+            // Display the AI's response
+            if (data.success) {
+                const html = converter.makeHtml(data.ai_response);
+                appendMessage(chatBox, 'ai', html);
+            } else {
+                const errorHtml = `Error: ${data.error || 'An unknown error occurred.'}`;
+                appendMessage(chatBox, 'ai', errorHtml);
+            }
+            this.reset();
+            document.getElementById('fileName').textContent = 'No file chosen';
+        };
+    </script>
+</body>
+</html>
