@@ -5,18 +5,20 @@ from flask_bcrypt import Bcrypt
 from pymongo import MongoClient
 from datetime import datetime
 import os
+import platform
 from dotenv import load_dotenv
 import google.generativeai as genai
 
-from flask_dance.contrib.google import make_google_blueprint, google
-from flask_dance.contrib.facebook import make_facebook_blueprint, facebook
+# from flask_dance.contrib.google import make_google_blueprint, google
+# from flask_dance.contrib.facebook import make_facebook_blueprint, facebook
 
 # File processing and OCR
 import pytesseract
 
-# Set the path to the Tesseract executable
-# Update this path if you installed Tesseract in a different location
-pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
+# Set the path to the Tesseract executable only if on Windows
+if platform.system() == "Windows":
+    # Update this path if you installed Tesseract in a different location
+    pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
 from PIL import Image
 import io
 import pdfplumber
@@ -34,20 +36,20 @@ genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 # Flask-Dance OAuth setup
 os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'  # REMOVE in production for https only
 
-google_bp = make_google_blueprint(
-    client_id=os.getenv("GOOGLE_OAUTH_CLIENT_ID"),
-    client_secret=os.getenv("GOOGLE_OAUTH_CLIENT_SECRET"),
-    scope=["profile", "email"],
-    redirect_url="/login/google/authorized"
-)
-facebook_bp = make_facebook_blueprint(
-    client_id=os.getenv("FACEBOOK_OAUTH_CLIENT_ID"),
-    client_secret=os.getenv("FACEBOOK_OAUTH_CLIENT_SECRET"),
-    scope=["email"],
-    redirect_url="/login/facebook/authorized"
-)
-app.register_blueprint(google_bp, url_prefix="/login")
-app.register_blueprint(facebook_bp, url_prefix="/login")
+# google_bp = make_google_blueprint(
+#     client_id=os.getenv("GOOGLE_OAUTH_CLIENT_ID"),
+#     client_secret=os.getenv("GOOGLE_OAUTH_CLIENT_SECRET"),
+#     scope=["profile", "email"],
+#     redirect_url="/login/google/authorized"
+# )
+# facebook_bp = make_facebook_blueprint(
+#     client_id=os.getenv("FACEBOOK_OAUTH_CLIENT_ID"),
+#     client_secret=os.getenv("FACEBOOK_OAUTH_CLIENT_SECRET"),
+#     scope=["email"],
+#     redirect_url="/login/facebook/authorized"
+# )
+# app.register_blueprint(google_bp, url_prefix="/login")
+# app.register_blueprint(facebook_bp, url_prefix="/login")
 
 # MongoDB setup
 client = MongoClient(os.getenv("MONGO_URI"))
@@ -85,33 +87,33 @@ def login():
         return render_template('login.html', error='Invalid credentials')
     return render_template('login.html')
 
-@app.route('/login/google/authorized')
-def google_authorized():
-    if not google.authorized:
-        return redirect(url_for("google.login"))
-    resp = google.get("/oauth2/v2/userinfo")
-    if not resp.ok:
-        return redirect(url_for('login'))
-    info = resp.json()
-    email = info.get("email")
-    user_id = get_or_create_oauth_user(email, 'google')
-    session['user_id'] = user_id
-    return redirect(url_for('index'))
+# @app.route('/login/google/authorized')
+# def google_authorized():
+#     if not google.authorized:
+#         return redirect(url_for("google.login"))
+#     resp = google.get("/oauth2/v2/userinfo")
+#     if not resp.ok:
+#         return redirect(url_for('login'))
+#     info = resp.json()
+#     email = info.get("email")
+#     user_id = get_or_create_oauth_user(email, 'google')
+#     session['user_id'] = user_id
+#     return redirect(url_for('index'))
 
-@app.route('/login/facebook/authorized')
-def facebook_authorized():
-    if not facebook.authorized:
-        return redirect(url_for("facebook.login"))
-    resp = facebook.get("/me?fields=id,name,email")
-    if not resp.ok:
-        return redirect(url_for('login'))
-    info = resp.json()
-    email = info.get("email")
-    if not email:
-        return render_template('login.html', error='Facebook login failed: Email not provided.')
-    user_id = get_or_create_oauth_user(email, 'facebook')
-    session['user_id'] = user_id
-    return redirect(url_for('index'))
+# @app.route('/login/facebook/authorized')
+# def facebook_authorized():
+#     if not facebook.authorized:
+#         return redirect(url_for("facebook.login"))
+#     resp = facebook.get("/me?fields=id,name,email")
+#     if not resp.ok:
+#         return redirect(url_for('login'))
+#     info = resp.json()
+#     email = info.get("email")
+#     if not email:
+#         return render_template('login.html', error='Facebook login failed: Email not provided.')
+#     user_id = get_or_create_oauth_user(email, 'facebook')
+#     session['user_id'] = user_id
+#     return redirect(url_for('index'))
 
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
@@ -319,4 +321,5 @@ if __name__ == '__main__':
     # Use Waitress as the production server
     # The app will be accessible on your local network at http://<your-ip-address>:8080
     print("Starting server on http://0.0.0.0:8080")
-    serve(app, host='0.0.0.0', port=8080)
+    port = int(os.environ.get('PORT', 8080))
+    serve(app, host='0.0.0.0', port=port)

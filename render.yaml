@@ -6,7 +6,7 @@ services:
     buildCommand: |
       pip install -r requirements.txt
       apt-get update && apt-get install -y tesseract-ocr
-    startCommand: python app.py
+    startCommand: gunicorn app:app
     envVars:
       - key: PYTHON_VERSION
         value: 3.10.6 # Or a version compatible with your project
@@ -16,11 +16,4 @@ services:
         sync: false
       - key: SECRET_KEY
         sync: false
-      - key: GOOGLE_CLIENT_ID
-        sync: false
-      - key: GOOGLE_CLIENT_SECRET
-        sync: false
-      - key: FACEBOOK_CLIENT_ID
-        sync: false
-      - key: FACEBOOK_CLIENT_SECRET
-        sync: false
+
